@@ -203,8 +203,7 @@ def order_create(request):
                 )
             
             cart.delete()
-            messages.success(request, f'Your order #{order.id} has been placed successfully!')
-            return redirect('shop:product_list')
+            return redirect('shop:order_payment', order_id=order.id)
     else:
         form = OrderCreateForm()
     
@@ -212,6 +211,27 @@ def order_create(request):
         'cart': cart,
         'form': form,
     })
+
+@login_required
+def order_payment(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    if order.status == 'cancelled':
+        messages.error(request, 'This order has been cancelled.')
+        return redirect('shop:product_list')
+    
+    if request.method == 'POST':
+        # Simulate payment success, set order status to processing
+        order.status = 'processing'
+        order.save()
+        messages.success(request, f'Payment successful for Order #{order.id}!')
+        return redirect('shop:order_confirmation', order_id=order.id)
+        
+    return render(request, 'shop/order_payment.html', {'order': order})
+
+@login_required
+def order_confirmation(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, 'shop/order_confirmation.html', {'order': order})
 
 @login_required
 def order_list(request):

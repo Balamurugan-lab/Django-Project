@@ -1,0 +1,220 @@
+{% extends "shop/base.html" %}
+{% block title %}Order Confirmed #{{ order.id }} - FootwearShop{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center mb-5">
+            <!-- Animated Checkmark Container -->
+            <div class="success-checkmark mb-4">
+                <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
+                </div>
+            </div>
+            
+            <h1 class="display-5 fw-bold text-success mb-2">Order Confirmed!</h1>
+            <p class="lead text-muted">Thank you for your order, {{ order.first_name }}. Your payment was successful!</p>
+            <p class="text-muted">A confirmation email has been sent to <strong>{{ order.email }}</strong>. We will notify you when your items ship.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Invoice Details Card -->
+            <div class="card shadow border-0 overflow-hidden">
+                <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 font-monospace">RECEIPT #{{ order.id }}</h5>
+                    <span class="small">{{ order.created|date:"F d, Y" }}</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <h6 class="text-muted text-uppercase small">Shipping Address</h6>
+                            <p class="mb-0"><strong>{{ order.first_name }} {{ order.last_name }}</strong></p>
+                            <p class="mb-0">{{ order.address }}</p>
+                            <p class="mb-0">{{ order.city }}, {{ order.postal_code }}</p>
+                        </div>
+                        <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                            <h6 class="text-muted text-uppercase small">Payment Status</h6>
+                            <p class="mb-0 text-success fw-bold"><i class="fas fa-check-circle me-1"></i>PAID</p>
+                            <h6 class="text-muted text-uppercase small mt-3">Shipping Method</h6>
+                            <p class="mb-0">Free Standard Delivery</p>
+                        </div>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Size</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.image %}
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-shoe-prints text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <span class="fw-bold d-block">{{ item.product.name }}</span>
+                                                <small class="text-muted">{{ item.product.brand.name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ item.size }}</td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-end font-monospace">${{ item.price }}</td>
+                                    <td class="text-end font-monospace">${{ item.get_cost }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totals Block -->
+                    <div class="row mt-4 justify-content-end">
+                        <div class="col-md-5">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal:</span>
+                                <span class="font-monospace">${{ order.total_cost }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Shipping:</span>
+                                <span class="text-success font-monospace">FREE</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between h5 mb-0">
+                                <strong>Grand Total:</strong>
+                                <strong class="text-primary font-monospace">${{ order.total_cost }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page actions -->
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                <a href="{% url 'shop:product_list' %}" class="btn btn-primary btn-lg px-4"><i class="fas fa-shopping-bag me-2"></i>Continue Shopping</a>
+                <a href="{% url 'shop:order_list' %}" class="btn btn-outline-dark btn-lg px-4"><i class="fas fa-history me-2"></i>View Order History</a>
+                <button onclick="window.print()" class="btn btn-outline-secondary btn-lg px-4"><i class="fas fa-print me-2"></i>Print Receipt</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Success checkmark animation styles */
+    .success-checkmark {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+    }
+    .check-icon {
+        width: 80px;
+        height: 80px;
+        position: relative;
+        border-radius: 50%;
+        box-sizing: content-box;
+        border: 4px solid #4CAF50;
+    }
+    .check-icon::before {
+        top: 3px;
+        left: -2px;
+        width: 30px;
+        transform-origin: 100% 50%;
+        border-radius: 100px 0 0 100px;
+    }
+    .check-icon::after {
+        top: 0;
+        left: 30px;
+        width: 60px;
+        transform-origin: 0 50%;
+        border-radius: 0 100px 100px 0;
+    }
+    .icon-line {
+        height: 5px;
+        background-color: #4CAF50;
+        display: block;
+        border-radius: 2px;
+        position: absolute;
+        z-index: 10;
+    }
+    .line-tip {
+        top: 46px;
+        left: 19px;
+        width: 25px;
+        transform: rotate(45deg);
+        animation: icon-line-tip 0.75s;
+    }
+    .line-long {
+        top: 38px;
+        right: 15px;
+        width: 47px;
+        transform: rotate(-45deg);
+        animation: icon-line-long 0.75s;
+    }
+    .icon-circle {
+        top: -4px;
+        left: -4px;
+        position: absolute;
+        z-index: 10;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 4px solid rgba(76, 175, 80, 0.5);
+        box-sizing: content-box;
+    }
+    .icon-fix {
+        top: 8px;
+        width: 5px;
+        left: 26px;
+        z-index: 1;
+        height: 85px;
+        position: absolute;
+        transform: rotate(-45deg);
+    }
+    
+    @keyframes icon-line-tip {
+        0% { width: 0; left: 1px; top: 19px; }
+        54% { width: 0; left: 1px; top: 19px; }
+        70% { width: 50px; left: 21px; top: 37px; }
+        84% { width: 17px; left: 14px; top: 48px; }
+        100% { width: 25px; left: 19px; top: 46px; }
+    }
+    @keyframes icon-line-long {
+        0% { width: 0; right: 46px; top: 54px; }
+        65% { width: 0; right: 46px; top: 54px; }
+        84% { width: 55px; right: 0px; top: 35px; }
+        100% { width: 47px; right: 15px; top: 38px; }
+    }
+
+    @media print {
+        .btn, nav, footer, .success-checkmark, h1, .lead {
+            display: none !important;
+        }
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #000 !important;
+        }
+    }
+</style>
+{% endblock %}

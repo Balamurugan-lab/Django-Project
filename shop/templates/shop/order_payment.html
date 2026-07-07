@@ -1,0 +1,238 @@
+{% extends "shop/base.html" %}
+{% block title %}Payment for Order #{{ order.id }} - FootwearShop{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <!-- Processing overlay -->
+    <div id="payment-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="background: rgba(0, 0, 0, 0.85); z-index: 9999; color: white;">
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 4rem; height: 4rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4 class="mb-2">Processing Payment...</h4>
+            <p class="text-muted">Do not refresh or close this page.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-wallet me-2"></i>Choose Payment Method</h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Nav Tabs -->
+                    <ul class="nav nav-pills mb-4 justify-content-center" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active px-4 py-2" id="pills-card-tab" data-bs-toggle="pill" data-bs-target="#pills-card" type="button" role="tab"><i class="fas fa-credit-card me-2"></i>Credit/Debit Card</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link px-4 py-2" id="pills-upi-tab" data-bs-toggle="pill" data-bs-target="#pills-upi" type="button" role="tab"><i class="fas fa-mobile-alt me-2"></i>UPI / QR</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link px-4 py-2" id="pills-cod-tab" data-bs-toggle="pill" data-bs-target="#pills-cod" type="button" role="tab"><i class="fas fa-hand-holding-usd me-2"></i>Cash on Delivery</button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Contents -->
+                    <div class="tab-content" id="pills-tabContent">
+                        <!-- Card Payment -->
+                        <div class="tab-pane fade show active" id="pills-card" role="tabpanel">
+                            <!-- Card Mockup Preview -->
+                            <div class="d-flex justify-content-center mb-4">
+                                <div class="card-preview position-relative text-white p-4" style="width: 350px; height: 200px; background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%); border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <i class="fas fa-microchip fa-2x text-warning"></i>
+                                        <i class="fab fa-cc-visa fa-2x"></i>
+                                    </div>
+                                    <div class="card-number-preview h5 tracking-widest mb-3 text-center font-monospace">•••• •••• •••• ••••</div>
+                                    <div class="d-flex justify-content-between mt-auto">
+                                        <div>
+                                            <div class="text-uppercase small text-muted-custom" style="font-size: 0.65rem;">Card Holder</div>
+                                            <div class="card-holder-preview text-uppercase text-truncate small" style="max-width: 180px;">FULL NAME</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-uppercase small text-muted-custom" style="font-size: 0.65rem;">Expires</div>
+                                            <div class="card-expiry-preview font-monospace small">MM/YY</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card Form -->
+                            <form id="card-payment-form" method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="form-label">Cardholder Name</label>
+                                    <input type="text" class="form-control" id="card-name" placeholder="John Doe" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Card Number</label>
+                                    <input type="text" class="form-control font-monospace" id="card-num" placeholder="4111 2222 3333 4444" maxlength="19" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Expiry Date</label>
+                                        <input type="text" class="form-control font-monospace" id="card-expiry" placeholder="MM/YY" maxlength="5" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">CVV</label>
+                                        <input type="password" class="form-control font-monospace" id="card-cvv" placeholder="•••" maxlength="3" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">Pay ${{ order.total_cost }}</button>
+                            </form>
+                        </div>
+
+                        <!-- UPI Payment -->
+                        <div class="tab-pane fade" id="pills-upi" role="tabpanel">
+                            <div class="text-center p-3">
+                                <div class="mb-3">
+                                    <i class="fas fa-qrcode fa-5x text-secondary mb-3"></i>
+                                    <h5>Scan QR Code to Pay</h5>
+                                    <p class="text-muted small">Scan this code using any UPI app (GPay, PhonePe, Paytm)</p>
+                                </div>
+                                <div class="bg-light p-3 d-inline-block border rounded mb-4">
+                                    <!-- Simple QR simulation -->
+                                    <div class="d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; background: repeating-conic-gradient(from 45deg, #eee 0deg 90deg, #333 90deg 180deg) 0 0/15px 15px;">
+                                        <div class="bg-white p-1 rounded font-monospace fw-bold" style="font-size: 0.75rem; border: 2px solid #000;">PAY NOW</div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <h6 class="mb-3">Or Enter UPI ID</h6>
+                                <form id="upi-payment-form" method="post">
+                                    {% csrf_token %}
+                                    <div class="input-group mb-3 max-width-upi mx-auto" style="max-width: 400px;">
+                                        <input type="text" class="form-control" placeholder="username@upi" required>
+                                        <button class="btn btn-primary" type="submit">Verify & Pay</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Cash on Delivery -->
+                        <div class="tab-pane fade" id="pills-cod" role="tabpanel">
+                            <div class="text-center py-4">
+                                <i class="fas fa-hand-holding-usd fa-4x text-success mb-3"></i>
+                                <h4>Cash on Delivery Selected</h4>
+                                <p class="text-muted px-4">You will pay in cash when the delivery executive arrives at your doorstep. No prepayment required.</p>
+                                <form id="cod-payment-form" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-lg px-5 mt-2">Confirm COD Order</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong class="text-muted d-block mb-1">Order Ref:</strong>
+                        <span class="fw-bold">#{{ order.id }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong class="text-muted d-block mb-1">Deliver To:</strong>
+                        <span class="d-block">{{ order.first_name }} {{ order.last_name }}</span>
+                        <small class="text-muted">{{ order.address }}, {{ order.city }} - {{ order.postal_code }}</small>
+                    </div>
+                    <hr>
+                    {% for item in order.items.all %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="text-truncate" style="max-width: 70%;">
+                            <span class="small fw-bold">{{ item.product.name }}</span><br>
+                            <small class="text-muted">Size {{ item.size }} × {{ item.quantity }}</small>
+                        </div>
+                        <span class="small font-monospace">${{ item.get_cost }}</span>
+                    </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between h5 mb-0">
+                        <strong>Total Amount:</strong>
+                        <strong class="text-primary">${{ order.total_cost }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Real-time card preview updates
+    const cardNameInput = document.getElementById('card-name');
+    const cardNumInput = document.getElementById('card-num');
+    const cardExpiryInput = document.getElementById('card-expiry');
+
+    const cardHolderPreview = document.querySelector('.card-holder-preview');
+    const cardNumberPreview = document.querySelector('.card-number-preview');
+    const cardExpiryPreview = document.querySelector('.card-expiry-preview');
+
+    cardNameInput.addEventListener('input', (e) => {
+        cardHolderPreview.textContent = e.target.value.toUpperCase() || 'FULL NAME';
+    });
+
+    cardNumInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        let formatted = '';
+        for (let i = 0; i < val.length; i++) {
+            if (i > 0 && i % 4 === 0) formatted += ' ';
+            formatted += val[i];
+        }
+        e.target.value = formatted;
+        cardNumberPreview.textContent = formatted || '•••• •••• •••• ••••';
+    });
+
+    cardExpiryInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        if (val.length > 2) {
+            val = val.substring(0, 2) + '/' + val.substring(2, 4);
+        }
+        e.target.value = val;
+        cardExpiryPreview.textContent = val || 'MM/YY';
+    });
+
+    // Simulated Loading & Submission Handler
+    const forms = [
+        document.getElementById('card-payment-form'),
+        document.getElementById('upi-payment-form'),
+        document.getElementById('cod-payment-form')
+    ];
+
+    forms.forEach(form => {
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Show loading overlay
+                document.getElementById('payment-overlay').classList.remove('d-none');
+                document.getElementById('payment-overlay').classList.add('d-flex');
+
+                // Wait 2.5 seconds, then submit form programmatically to backend
+                setTimeout(() => {
+                    form.submit();
+                }, 2500);
+            });
+        }
+    });
+</script>
+
+<style>
+    .nav-pills .nav-link {
+        color: #495057;
+        border: 1px solid #dee2e6;
+        margin: 0 5px;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .text-muted-custom {
+        color: rgba(255, 255, 255, 0.6);
+    }
+</style>
+{% endblock %}
